@@ -1,48 +1,46 @@
-export interface SSEEvent {
-  event: string;
-  data: any;
-}
-
 export interface StreamCallbacks {
-  onStatus: (status: string, detail?: string) => void;
+  onStatus: (nodeName: string, detail?: string) => void;
   onContent: (chunk: string) => void;
   onError: (error: string) => void;
   onDone: () => void;
 }
 
-const LANGGRAPH_STATUS_EVENTS = new Set([
-  'on_chain_start',
-  'on_chain_end',
-  'on_tool_start',
-  'on_tool_end',
-  'on_retriever_start',
-  'on_retriever_end',
-  'on_parser_start',
-  'on_parser_end',
-]);
-
-function humanizeEvent(event: string, data: any): string {
-  const name = data?.name || data?.metadata?.langgraph_node || '';
-  switch (event) {
-    case 'on_chain_start':
-      return name ? `Running ${name}…` : 'Processing…';
-    case 'on_chain_end':
-      return name ? `Finished ${name}` : 'Step complete';
-    case 'on_tool_start':
-      return name ? `Calling tool: ${name}…` : 'Calling tool…';
-    case 'on_tool_end':
-      return name ? `Tool ${name} returned` : 'Tool returned';
-    case 'on_retriever_start':
-      return 'Retrieving context…';
-    case 'on_retriever_end':
-      return 'Context retrieved';
-    case 'on_parser_start':
-      return 'Parsing output…';
-    case 'on_parser_end':
-      return 'Parsing complete';
-    default:
-      return event;
+/**
+ * Extract a human-readable detail from a node's state payload.
+ */
+function extractDetail(nodeName: string, state: Record<string, any>): string | undefined {
+  if (state.sql && typeof state.sql === 'string') {
+    return state.sql;
   }
+  if (state.validation_feedback && typeof state.validation_feedback === 'object') {
+    const vf = state.validation_feedback;
+    if (vf.status) return `Status: ${vf.status}`;
+  }
+  if (state.intent_result && typeof state.intent_result === 'string') {
+    return state.intent_result;
+  }
+  return undefined;
+}
+
+/**
+ * Try to extract the final markdown answer from the last message event.
+ * The final node's `messages` array contains AIMessage-like strings with
+ * `content='...'` that holds the markdown answer.
+ */
+function extractFinalContent(state: Record<string, any>): string | null {
+  const messages = state.messages;
+  if (!Array.isArray(messages) || messages.length === 0) return null;
+
+  const last = messages[messages.length - 1];
+  if (typeof last !== 'string') return null;
+
+  // Parse content='...' from the message string
+  const match = last.match(/^content='([\s\S]*?)'\s+additional_kwargs=/);
+  if (match) {
+    // Unescape \\n to real newlines
+    return match[1].replace(/\\n/g, '\n');
+  }
+  return null;
 }
 
 export function streamChat(
@@ -51,6 +49,9 @@ export function streamChat(
   callbacks: StreamCallbacks,
   signal?: AbortSignal,
 ) {
+  // We collect all events to detect the final one
+  const collectedEvents: { nodeName: string; state: Record<string, any> }[] = [];
+
   fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
@@ -84,37 +85,49 @@ export function streamChat(
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith('data:')) {
             const raw = line.slice(5).trim();
-            if (raw === '[DONE]') {
+
+            // Handle done event
+            if (raw === '[DONE]' || currentEvent === 'done') {
+              // Process the final collected event as the answer
+              if (collectedEvents.length > 0) {
+                const lastEvent = collectedEvents[collectedEvents.length - 1];
+                const content = extractFinalContent(lastEvent.state);
+                if (content) {
+                  callbacks.onContent(content);
+                }
+              }
               callbacks.onDone();
               return;
             }
-            try {
-              const data = JSON.parse(raw);
-              const eventType = currentEvent || data.event || '';
 
-              if (LANGGRAPH_STATUS_EVENTS.has(eventType)) {
-                callbacks.onStatus(humanizeEvent(eventType, data));
-              } else if (eventType === 'on_chat_model_stream' || data.content || data.text) {
-                const chunk =
-                  data?.data?.chunk?.content ||
-                  data?.content ||
-                  data?.text ||
-                  (typeof data === 'string' ? data : '');
-                if (chunk) callbacks.onContent(chunk);
-              } else if (eventType === 'error') {
-                callbacks.onError(data.message || 'Unknown error');
-              } else {
-                // Fallback: treat unknown events with content as content
-                const fallback = data?.data?.chunk?.content || data?.content || data?.text;
-                if (fallback) callbacks.onContent(fallback);
-                else if (eventType) callbacks.onStatus(humanizeEvent(eventType, data));
+            if (currentEvent === 'message') {
+              try {
+                const data = JSON.parse(raw);
+                // The data is { "NODE_NAME": { ...state } }
+                const nodeName = Object.keys(data)[0];
+                if (nodeName) {
+                  const state = data[nodeName];
+                  collectedEvents.push({ nodeName, state });
+
+                  // Emit as intermediate status
+                  const detail = extractDetail(nodeName, state);
+                  callbacks.onStatus(nodeName, detail);
+                }
+              } catch {
+                // Ignore parse errors
               }
-            } catch {
-              // Plain text data line
-              if (raw) callbacks.onContent(raw);
             }
             currentEvent = '';
           }
+        }
+      }
+
+      // If stream ended without explicit [DONE]
+      if (collectedEvents.length > 0) {
+        const lastEvent = collectedEvents[collectedEvents.length - 1];
+        const content = extractFinalContent(lastEvent.state);
+        if (content) {
+          callbacks.onContent(content);
         }
       }
       callbacks.onDone();

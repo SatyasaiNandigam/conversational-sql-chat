@@ -1,14 +1,14 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
-import { StatusTimeline } from './StatusTimeline';
+import { StatusTimeline, type StatusStep } from './StatusTimeline';
 import { User, Bot } from 'lucide-react';
 
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  statusSteps: string[];
+  statusSteps: StatusStep[];
   isStreaming: boolean;
   error?: string;
 }
