@@ -4,6 +4,7 @@ import { ChatInput } from './ChatInput';
 import { streamChat } from '@/lib/sse';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Database } from 'lucide-react';
+import type { StatusStep } from './StatusTimeline';
 
 const API_ENDPOINT = 'http://localhost:8000/chat/stream';
 
@@ -14,7 +15,6 @@ export function ChatContainer() {
 
   const isStreaming = messages.some((m) => m.isStreaming);
 
-  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -45,16 +45,17 @@ export function ChatContainer() {
       API_ENDPOINT,
       text,
       {
-        onStatus(status) {
+        onStatus(nodeName: string, detail?: string) {
+          const step: StatusStep = { nodeName, detail };
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
                 ? {
                     ...m,
                     statusSteps:
-                      m.statusSteps[m.statusSteps.length - 1] === status
+                      m.statusSteps[m.statusSteps.length - 1]?.nodeName === nodeName
                         ? m.statusSteps
-                        : [...m.statusSteps, status],
+                        : [...m.statusSteps, step],
                   }
                 : m,
             ),
@@ -95,7 +96,6 @@ export function ChatContainer() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      {/* Header */}
       <header className="flex items-center gap-3 border-b border-border bg-card px-6 py-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Database className="h-5 w-5" />
@@ -110,7 +110,6 @@ export function ChatContainer() {
         </div>
       </header>
 
-      {/* Messages */}
       <ScrollArea className="flex-1">
         <div className="mx-auto max-w-3xl px-4">
           {messages.length === 0 && (
@@ -133,7 +132,6 @@ export function ChatContainer() {
         </div>
       </ScrollArea>
 
-      {/* Input */}
       <ChatInput
         onSend={handleSend}
         onStop={handleStop}
