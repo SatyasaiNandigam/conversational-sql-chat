@@ -24,10 +24,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
     <div className={cn('flex gap-3 py-4', isUser && 'flex-row-reverse')}>
       <div
         className={cn(
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border',
           isUser
-            ? 'bg-primary text-primary-foreground'
-            : 'border border-border bg-card text-muted-foreground',
+            ? 'bg-primary/20 border-primary/40 text-primary neon-glow-sm'
+            : 'border-accent/40 bg-accent/10 text-accent',
         )}
       >
         {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
@@ -39,30 +39,30 @@ export function ChatMessage({ message }: ChatMessageProps) {
         )}
 
         {message.error ? (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {message.error}
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive font-mono">
+            <span className="text-destructive/60">ERROR: </span>{message.error}
           </div>
         ) : message.content ? (
           <div
             className={cn(
-              'rounded-2xl px-4 py-3 text-sm leading-relaxed',
+              'rounded-xl px-4 py-3 text-sm leading-relaxed border',
               isUser
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-foreground',
+                ? 'bg-primary/15 border-primary/30 text-foreground neon-glow-sm'
+                : 'bg-card border-border text-foreground',
             )}
           >
-            <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:bg-card prose-pre:border prose-pre:border-border prose-code:text-foreground prose-pre:rounded-lg prose-pre:p-3">
+            <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:bg-background prose-pre:border prose-pre:border-primary/20 prose-code:text-primary prose-pre:rounded-lg prose-pre:p-3 prose-headings:font-bold prose-strong:text-primary">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {message.content}
               </ReactMarkdown>
             </div>
           </div>
         ) : message.isStreaming ? (
-          <div className="rounded-2xl bg-muted px-4 py-3">
-            <div className="flex gap-1">
-              <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:0ms]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:150ms]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:300ms]" />
+          <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
+            <div className="flex gap-1.5">
+              <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 [animation-delay:0ms]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 [animation-delay:150ms]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-primary/60 [animation-delay:300ms]" />
             </div>
           </div>
         ) : null}

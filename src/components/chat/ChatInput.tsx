@@ -19,7 +19,6 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: ChatInputPr
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setValue('');
-    // Reset textarea height
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
   }, [value, disabled, onSend]);
 
@@ -32,20 +31,19 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: ChatInputPr
   };
 
   return (
-    <div className="border-t border-border bg-card px-4 py-3">
+    <div className="border-t border-border bg-card/80 backdrop-blur-sm px-4 py-3">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
         <Textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
-            // Auto-grow
             e.target.style.height = 'auto';
             e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Ask a question about your data…"
-          className="min-h-[44px] max-h-[160px] resize-none rounded-xl border-border bg-background text-sm"
+          placeholder="> Enter query..."
+          className="min-h-[44px] max-h-[160px] resize-none rounded-xl border-primary/20 bg-background text-sm font-mono focus:border-primary/50 focus:neon-border transition-shadow"
           rows={1}
           disabled={disabled}
         />
@@ -61,7 +59,7 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: ChatInputPr
         ) : (
           <Button
             size="icon"
-            className="h-[44px] w-[44px] shrink-0 rounded-xl active:scale-95 transition-transform"
+            className="h-[44px] w-[44px] shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-sm active:scale-95 transition-all"
             onClick={handleSubmit}
             disabled={!value.trim() || disabled}
           >

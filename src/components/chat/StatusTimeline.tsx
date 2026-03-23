@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Check, Loader2, ChevronDown } from 'lucide-react';
+import { Check, Loader2, ChevronDown, Terminal } from 'lucide-react';
 import { useState } from 'react';
 
 export interface StatusStep {
@@ -42,20 +42,20 @@ export function StatusTimeline({ steps, isStreaming }: StatusTimelineProps) {
       <button
         onClick={() => showToggle && setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-left text-sm transition-colors',
-          showToggle && 'hover:bg-muted/60 cursor-pointer',
+          'flex w-full items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-left text-xs font-mono transition-all',
+          showToggle && 'hover:bg-primary/10 hover:border-primary/30 cursor-pointer',
           !showToggle && 'cursor-default',
         )}
       >
         {isStreaming ? (
           <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
         ) : (
-          <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <Terminal className="h-3.5 w-3.5 shrink-0 text-primary" />
         )}
-        <span className="flex-1 text-muted-foreground">
+        <span className="flex-1 text-muted-foreground tracking-wide">
           {isStreaming
-            ? getLabel(lastStep.nodeName)
-            : `Completed ${steps.length} steps`}
+            ? `> ${getLabel(lastStep.nodeName)}...`
+            : `> ${steps.length} processes completed`}
         </span>
         {showToggle && (
           <ChevronDown
@@ -68,20 +68,22 @@ export function StatusTimeline({ steps, isStreaming }: StatusTimelineProps) {
       </button>
 
       {expanded && (
-        <div className="mt-1 rounded-lg border border-border bg-muted/20 px-3 py-2">
+        <div className="mt-1 rounded-lg border border-primary/10 bg-background px-3 py-2 font-mono">
           <ol className="space-y-1">
             {completedSteps.map((step, i) => (
               <li
                 key={i}
-                className="flex items-center gap-2 text-xs text-muted-foreground"
+                className="flex items-center gap-2 text-[11px] text-muted-foreground"
               >
                 <Check className="h-3 w-3 shrink-0 text-primary" />
+                <span className="text-primary/60">[{String(i + 1).padStart(2, '0')}]</span>
                 <span>{getLabel(step.nodeName)}</span>
               </li>
             ))}
             {isStreaming && (
-              <li className="flex items-center gap-2 text-xs text-foreground">
+              <li className="flex items-center gap-2 text-[11px] text-foreground">
                 <Loader2 className="h-3 w-3 shrink-0 animate-spin text-primary" />
+                <span className="text-primary/60">[{String(steps.length).padStart(2, '0')}]</span>
                 <span>{getLabel(lastStep.nodeName)}</span>
               </li>
             )}
