@@ -120,7 +120,7 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
       },
       controller.signal,
     );
-  }, []);
+  }, [threadId]);
 
   const handleStop = useCallback(() => {
     abortRef.current?.abort();
