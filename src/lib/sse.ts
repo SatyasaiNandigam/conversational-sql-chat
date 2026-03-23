@@ -34,11 +34,14 @@ function extractFinalContent(state: Record<string, any>): string | null {
   const last = messages[messages.length - 1];
   if (typeof last !== 'string') return null;
 
-  // Parse content='...' from the message string
-  const match = last.match(/^content='([\s\S]*?)'\s+additional_kwargs=/);
-  if (match) {
-    // Unescape \\n to real newlines
-    return match[1].replace(/\\n/g, '\n');
+  // Parse content='...' or content="..." from the message string
+  const singleMatch = last.match(/^content='([\s\S]*?)'\s+additional_kwargs=/);
+  if (singleMatch) {
+    return singleMatch[1].replace(/\\n/g, '\n');
+  }
+  const doubleMatch = last.match(/^content="([\s\S]*?)"\s+additional_kwargs=/);
+  if (doubleMatch) {
+    return doubleMatch[1].replace(/\\n/g, '\n');
   }
   return null;
 }
