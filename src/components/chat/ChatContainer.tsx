@@ -29,7 +29,10 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
   useEffect(() => {
     if (activeSession === null) {
       setMessages([]);
+      setThreadId(null);
       return;
+    }
+    setThreadId(activeSession);
     }
     fetchMessages(activeSession)
       .then((msgs) => {
