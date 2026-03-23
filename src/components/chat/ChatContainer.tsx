@@ -15,6 +15,7 @@ interface ChatContainerProps {
 
 export function ChatContainer({ activeSession }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [threadId, setThreadId] = useState<number | null>(activeSession);
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
