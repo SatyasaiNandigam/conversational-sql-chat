@@ -46,6 +46,7 @@ function extractFinalContent(state: Record<string, any>): string | null {
 export function streamChat(
   endpoint: string,
   query: string,
+  threadId: number,
   callbacks: StreamCallbacks,
   signal?: AbortSignal,
 ) {
@@ -55,7 +56,7 @@ export function streamChat(
   fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ thread_id: threadId, user_query: query }),
     signal,
   })
     .then(async (response) => {

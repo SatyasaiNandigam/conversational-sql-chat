@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Database } from 'lucide-react';
 import type { StatusStep } from './StatusTimeline';
 
-const API_ENDPOINT = 'http://localhost:8000/chat/stream';
+const API_ENDPOINT = 'http://localhost:8000/invoke/stream';
 
 interface ChatContainerProps {
   activeSession: number | null;
@@ -15,6 +15,7 @@ interface ChatContainerProps {
 
 export function ChatContainer({ activeSession }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [threadId, setThreadId] = useState<number | null>(activeSession);
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -28,8 +29,10 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
   useEffect(() => {
     if (activeSession === null) {
       setMessages([]);
+      setThreadId(null);
       return;
     }
+    setThreadId(activeSession);
     fetchMessages(activeSession)
       .then((msgs) => {
         const mapped: Message[] = msgs.map((m) => ({
@@ -45,6 +48,12 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
   }, [activeSession]);
 
   const handleSend = useCallback((text: string) => {
+    // Generate a new thread_id if none exists
+    const currentThreadId = threadId ?? Date.now();
+    if (threadId === null) {
+      setThreadId(currentThreadId);
+    }
+
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -69,6 +78,7 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
     streamChat(
       API_ENDPOINT,
       text,
+      currentThreadId,
       {
         onStatus(nodeName: string, detail?: string) {
           const step: StatusStep = { nodeName, detail };
