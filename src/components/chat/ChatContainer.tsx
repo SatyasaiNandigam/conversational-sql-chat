@@ -33,7 +33,6 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
       return;
     }
     setThreadId(activeSession);
-    }
     fetchMessages(activeSession)
       .then((msgs) => {
         const mapped: Message[] = msgs.map((m) => ({
