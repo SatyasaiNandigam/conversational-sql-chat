@@ -2,13 +2,18 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMessage, type Message } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { streamChat } from '@/lib/sse';
+import { fetchMessages } from '@/lib/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Database } from 'lucide-react';
 import type { StatusStep } from './StatusTimeline';
 
 const API_ENDPOINT = 'http://localhost:8000/chat/stream';
 
-export function ChatContainer() {
+interface ChatContainerProps {
+  activeSession: number | null;
+}
+
+export function ChatContainer({ activeSession }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -18,6 +23,26 @@ export function ChatContainer() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Load messages when activeSession changes
+  useEffect(() => {
+    if (activeSession === null) {
+      setMessages([]);
+      return;
+    }
+    fetchMessages(activeSession)
+      .then((msgs) => {
+        const mapped: Message[] = msgs.map((m) => ({
+          id: m.id,
+          role: m.type === 'human' ? 'user' : 'assistant',
+          content: m.content,
+          statusSteps: [],
+          isStreaming: false,
+        }));
+        setMessages(mapped);
+      })
+      .catch(() => setMessages([]));
+  }, [activeSession]);
 
   const handleSend = useCallback((text: string) => {
     const userMsg: Message = {
@@ -95,21 +120,7 @@ export function ChatContainer() {
   }, []);
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <header className="flex items-center gap-3 border-b border-border bg-card px-6 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Database className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-base font-semibold text-foreground leading-tight">
-            Text to SQL
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Ask questions about your data in natural language
-          </p>
-        </div>
-      </header>
-
+    <div className="flex h-full flex-col bg-background">
       <ScrollArea className="flex-1">
         <div className="mx-auto max-w-3xl px-4">
           {messages.length === 0 && (
