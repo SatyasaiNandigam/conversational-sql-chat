@@ -49,6 +49,12 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
   }, [activeSession]);
 
   const handleSend = useCallback((text: string) => {
+    // Generate a new thread_id if none exists
+    const currentThreadId = threadId ?? Date.now();
+    if (threadId === null) {
+      setThreadId(currentThreadId);
+    }
+
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -73,6 +79,7 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
     streamChat(
       API_ENDPOINT,
       text,
+      currentThreadId,
       {
         onStatus(nodeName: string, detail?: string) {
           const step: StatusStep = { nodeName, detail };
