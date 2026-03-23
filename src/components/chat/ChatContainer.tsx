@@ -4,7 +4,7 @@ import { ChatInput } from './ChatInput';
 import { streamChat } from '@/lib/sse';
 import { fetchMessages } from '@/lib/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Database } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import type { StatusStep } from './StatusTimeline';
 
 const API_ENDPOINT = 'http://localhost:8000/invoke/stream';
@@ -25,7 +25,6 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Load messages when activeSession changes
   useEffect(() => {
     if (activeSession === null) {
       setMessages([]);
@@ -48,7 +47,6 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
   }, [activeSession]);
 
   const handleSend = useCallback((text: string) => {
-    // Generate a new thread_id if none exists
     const currentThreadId = threadId ?? Date.now();
     if (threadId === null) {
       setThreadId(currentThreadId);
@@ -135,15 +133,20 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
         <div className="mx-auto max-w-3xl px-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-32 text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-                <Database className="h-7 w-7 text-muted-foreground" />
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 neon-border">
+                <Bot className="h-8 w-8 text-primary neon-text" />
               </div>
-              <h2 className="mb-1 text-lg font-semibold text-foreground">
-                What would you like to know?
+              <h2 className="mb-1 text-lg font-bold text-primary neon-text" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                SYSTEM READY
               </h2>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                Ask questions about your data and I'll generate SQL queries to find the answers.
+              <p className="max-w-sm text-xs text-muted-foreground tracking-wide">
+                {'>'} Awaiting query input. Ask questions about your data and I'll generate SQL to find answers.
               </p>
+              <div className="mt-6 flex gap-1">
+                {[...Array(3)].map((_, i) => (
+                  <span key={i} className="h-1 w-8 rounded-full bg-primary/30" style={{ animationDelay: `${i * 200}ms` }} />
+                ))}
+              </div>
             </div>
           )}
           {messages.map((msg) => (
