@@ -35,9 +35,13 @@ function extractFinalContent(state: Record<string, any>): string | null {
   if (typeof last !== 'string') return null;
 
   // Parse content='...' or content="..." from the message string
-  const match = last.match(/^content=['"](([\s\S]*?))['"]\s+additional_kwargs=/);
-  if (match) {
-    return match[1].replace(/\\n/g, '\n');
+  const singleMatch = last.match(/^content='([\s\S]*?)'\s+additional_kwargs=/);
+  if (singleMatch) {
+    return singleMatch[1].replace(/\\n/g, '\n');
+  }
+  const doubleMatch = last.match(/^content="([\s\S]*?)"\s+additional_kwargs=/);
+  if (doubleMatch) {
+    return doubleMatch[1].replace(/\\n/g, '\n');
   }
   return null;
 }
