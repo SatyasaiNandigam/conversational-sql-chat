@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Database } from 'lucide-react';
 import type { StatusStep } from './StatusTimeline';
 
-const API_ENDPOINT = 'http://localhost:8000/chat/stream';
+const API_ENDPOINT = 'http://localhost:8000/invoke/stream';
 
 interface ChatContainerProps {
   activeSession: number | null;
