@@ -21,7 +21,7 @@ const Index = () => {
               {activeSession !== null ? `Session ${activeSession}` : 'New Chat'}
             </span>
           </header>
-          <div className="flex-1">
+          <div className="flex-1 overflow-hidden">
             <ChatContainer activeSession={activeSession} />
           </div>
         </div>

@@ -120,7 +120,7 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
   }, []);
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       <ScrollArea className="flex-1">
         <div className="mx-auto max-w-3xl px-4">
           {messages.length === 0 && (
