@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils';
 import { StatusTimeline, type StatusStep } from './StatusTimeline';
 import { StreamingMarkdown } from './StreamingMarkdown';
-import { User, Bot } from 'lucide-react';
+import { User, Bot, ChevronDown, Database } from 'lucide-react';
+import { useState } from 'react';
 
 export interface Message {
   id: string;
@@ -10,10 +11,33 @@ export interface Message {
   statusSteps: StatusStep[];
   isStreaming: boolean;
   error?: string;
+  sql?: string;
 }
 
 interface ChatMessageProps {
   message: Message;
+}
+
+function SqlBlock({ sql }: { sql: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mb-2">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-mono text-muted-foreground hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer"
+      >
+        <Database className="h-3.5 w-3.5 text-primary" />
+        <span className="tracking-wide">Generated SQL</span>
+        <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-200', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="mt-1 rounded-lg border border-primary/10 bg-background p-3 font-mono text-[11px] text-primary/90 overflow-x-auto whitespace-pre-wrap">
+          {sql}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
@@ -35,6 +59,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
       <div className={cn('min-w-0 max-w-[75%] space-y-2', isUser && 'text-right')}>
         {!isUser && message.statusSteps.length > 0 && (
           <StatusTimeline steps={message.statusSteps} isStreaming={message.isStreaming} />
+        )}
+
+        {!isUser && message.sql && (
+          <SqlBlock sql={message.sql} />
         )}
 
         {message.error ? (

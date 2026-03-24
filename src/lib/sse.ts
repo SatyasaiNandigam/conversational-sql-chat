@@ -1,6 +1,7 @@
 export interface StreamCallbacks {
   onStatus: (nodeName: string, detail?: string) => void;
   onContent: (chunk: string) => void;
+  onSql: (sql: string) => void;
   onError: (error: string) => void;
   onDone: () => void;
 }
@@ -112,6 +113,11 @@ export function streamChat(
                 if (nodeName) {
                   const state = data[nodeName];
                   collectedEvents.push({ nodeName, state });
+
+                  // Capture SQL if present
+                  if (state.sql && typeof state.sql === 'string') {
+                    callbacks.onSql(state.sql);
+                  }
 
                   // Emit as intermediate status
                   const detail = extractDetail(nodeName, state);

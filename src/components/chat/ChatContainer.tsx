@@ -94,6 +94,13 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
             ),
           );
         },
+        onSql(sql: string) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, sql } : m,
+            ),
+          );
+        },
         onContent(chunk) {
           setMessages((prev) =>
             prev.map((m) =>
