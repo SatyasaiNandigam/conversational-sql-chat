@@ -114,6 +114,11 @@ export function streamChat(
                   const state = data[nodeName];
                   collectedEvents.push({ nodeName, state });
 
+                  // Capture SQL if present
+                  if (state.sql && typeof state.sql === 'string') {
+                    callbacks.onSql(state.sql);
+                  }
+
                   // Emit as intermediate status
                   const detail = extractDetail(nodeName, state);
                   callbacks.onStatus(nodeName, detail);
