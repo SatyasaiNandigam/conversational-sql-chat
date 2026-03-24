@@ -1,7 +1,6 @@
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { StatusTimeline, type StatusStep } from './StatusTimeline';
+import { StreamingMarkdown } from './StreamingMarkdown';
 import { User, Bot } from 'lucide-react';
 
 export interface Message {
@@ -51,11 +50,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 : 'bg-card border-border text-foreground',
             )}
           >
-            <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:bg-background prose-pre:border prose-pre:border-primary/20 prose-code:text-primary prose-pre:rounded-lg prose-pre:p-3 prose-headings:font-bold prose-strong:text-primary">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {message.content}
-              </ReactMarkdown>
-            </div>
+            {isUser ? (
+              <p>{message.content}</p>
+            ) : (
+              <StreamingMarkdown content={message.content} isStreaming={message.isStreaming} />
+            )}
           </div>
         ) : message.isStreaming ? (
           <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
