@@ -1,6 +1,7 @@
 export interface StreamCallbacks {
   onStatus: (nodeName: string, detail?: string) => void;
   onContent: (chunk: string) => void;
+  onSql: (sql: string) => void;
   onError: (error: string) => void;
   onDone: () => void;
 }
