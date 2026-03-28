@@ -31,12 +31,6 @@ export function SessionSidebar({ activeSession, onSelectSession, onNewChat }: Se
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchSessions().then(setSessions).catch(() => {});
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
