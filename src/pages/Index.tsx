@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 const Index = () => {
   const [activeSession, setActiveSession] = useState<number | null>(null);
+  const [newChatKey, setNewChatKey] = useState(0);
 
   return (
     <SidebarProvider>
@@ -12,7 +13,10 @@ const Index = () => {
         <SessionSidebar
           activeSession={activeSession}
           onSelectSession={setActiveSession}
-          onNewChat={() => setActiveSession(null)}
+          onNewChat={() => {
+            setActiveSession(null);
+            setNewChatKey((k) => k + 1);
+          }}
         />
         <div className="flex-1 flex flex-col">
           <header className="h-12 flex items-center border-b border-border bg-card px-4">
@@ -26,7 +30,7 @@ const Index = () => {
             </div>
           </header>
           <div className="flex-1 overflow-hidden">
-            <ChatContainer activeSession={activeSession} />
+            <ChatContainer key={`${activeSession ?? 'new'}-${newChatKey}`} activeSession={activeSession} />
           </div>
         </div>
       </div>
