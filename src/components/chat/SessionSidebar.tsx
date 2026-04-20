@@ -108,4 +108,4 @@ export const SessionSidebar = forwardRef<SessionSidebarHandle, SessionSidebarPro
       </SidebarFooter>
     </Sidebar>
   );
-}
+});
