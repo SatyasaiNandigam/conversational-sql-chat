@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ChatContainer } from '@/components/chat/ChatContainer';
-import { SessionSidebar } from '@/components/chat/SessionSidebar';
+import { SessionSidebar, type SessionSidebarHandle } from '@/components/chat/SessionSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 const Index = () => {
   const [activeSession, setActiveSession] = useState<number | null>(null);
   const [newChatKey, setNewChatKey] = useState(0);
+  const sidebarRef = useRef<SessionSidebarHandle>(null);
+
+  const handleThreadCreated = useCallback((id: number) => {
+    setActiveSession(id);
+    sidebarRef.current?.refresh();
+  }, []);
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full scanline">
         <SessionSidebar
+          ref={sidebarRef}
           activeSession={activeSession}
           onSelectSession={setActiveSession}
           onNewChat={() => {
@@ -30,7 +37,11 @@ const Index = () => {
             </div>
           </header>
           <div className="flex-1 overflow-hidden">
-            <ChatContainer key={`${activeSession ?? 'new'}-${newChatKey}`} activeSession={activeSession} />
+            <ChatContainer
+              key={`${activeSession ?? 'new'}-${newChatKey}`}
+              activeSession={activeSession}
+              onThreadCreated={handleThreadCreated}
+            />
           </div>
         </div>
       </div>
