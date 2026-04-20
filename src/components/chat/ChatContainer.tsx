@@ -11,9 +11,10 @@ const API_ENDPOINT = 'http://localhost:8000/invoke/stream';
 
 interface ChatContainerProps {
   activeSession: number | null;
+  onThreadCreated?: (id: number) => void;
 }
 
-export function ChatContainer({ activeSession }: ChatContainerProps) {
+export function ChatContainer({ activeSession, onThreadCreated }: ChatContainerProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [threadId, setThreadId] = useState<number | null>(activeSession);
   const abortRef = useRef<AbortController | null>(null);
@@ -48,6 +49,7 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
 
   const handleSend = useCallback((text: string) => {
     const currentThreadId = threadId ?? Date.now();
+    const isNewThread = threadId === null;
     if (threadId === null) {
       setThreadId(currentThreadId);
     }
@@ -121,11 +123,14 @@ export function ChatContainer({ activeSession }: ChatContainerProps) {
               m.id === assistantId ? { ...m, isStreaming: false } : m,
             ),
           );
+          if (isNewThread) {
+            onThreadCreated?.(currentThreadId);
+          }
         },
       },
       controller.signal,
     );
-  }, [threadId]);
+  }, [threadId, onThreadCreated]);
 
   const handleStop = useCallback(() => {
     abortRef.current?.abort();

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { fetchSessions } from '@/lib/api';
 import { Plus, MessageSquare, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,14 +22,25 @@ interface SessionSidebarProps {
   onNewChat: () => void;
 }
 
-export function SessionSidebar({ activeSession, onSelectSession, onNewChat }: SessionSidebarProps) {
+export interface SessionSidebarHandle {
+  refresh: () => void;
+}
+
+export const SessionSidebar = forwardRef<SessionSidebarHandle, SessionSidebarProps>(
+  function SessionSidebar({ activeSession, onSelectSession, onNewChat }, ref) {
   const [sessions, setSessions] = useState<number[]>([]);
 
-  useEffect(() => {
+  const loadSessions = () => {
     fetchSessions()
       .then(setSessions)
       .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadSessions();
   }, []);
+
+  useImperativeHandle(ref, () => ({ refresh: loadSessions }), []);
 
 
   return (
@@ -97,4 +108,4 @@ export function SessionSidebar({ activeSession, onSelectSession, onNewChat }: Se
       </SidebarFooter>
     </Sidebar>
   );
-}
+});
